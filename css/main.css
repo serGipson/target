@@ -79,6 +79,7 @@ h1 {
 }
 
 .block-product {
+    margin: 10px;
     display: inline-block;
     width: 400px;
     text-align: center;
