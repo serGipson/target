@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="storeApp">
     <head>
         <title>Test</title>
 		<meta charset="utf-8">
@@ -7,11 +7,13 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="stylesheet" href="./css/reset.css">
 		<link rel="stylesheet" href="./css/main.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.0/angular.min.js"></script>
+        <script src="./common.js"></script>
     </head>
-    <body>
+    <body ng-controller="FridgeListCtrl">
         <nav id="float-panel">
-           <a href="#" id="store-icon" onclick="store.placeStore();"></a>
-           <a href="#" id="basket-icon" onclick="store.placeBasket();"><span id="basket-count"></span></a>
+           <a href="#" id="store-icon" ng-click="placeStore()"></a>
+           <a href="#" id="basket-icon" ng-click="placeBasket()"><span id="basket-count" ng-if="countProducts > 0">{{countProducts}}</span></a>
         </nav>
         <div class="wrapper">
             <header>
@@ -20,10 +22,43 @@
                    <h1>GIPSON</h1>
                </div>
             </header>
-            <section id="content"></section>
+            <section id="content">
+               <div ng-if="openPage == 'store'">
+                   <ul class="product-list">
+                       <li class="block-product" ng-repeat="(key, fridge) in itemsPage">
+                           <img ng-src="{{ fridge.image }}" alt=" {{ fridge.image }} ">
+                           <h3 class="product-name"> {{ fridge.name }} </h3>
+                           <spam class="cost"> {{ fridge.cost + fridge.currency }} </spam>
+                           <button class="ctrl-basket-buttons" ng-init="id = key + (maxItems * (page - 1));" ng-click="addItem(id);">Добавить в корзину</button>
+                       </li>
+                   </ul>
+                   <div class="wrap-page-buttons">
+                       <a href="#" ng-repeat="i in getArrPages()" ng-init="p = i + 1" ng-click="placeStore(p);" ng-class="(p == page) ? 'select' : ''">{{p}}</a>
+                   </div>     
+               </div>   
+               <div ng-if="countProducts > 0 && openPage == 'basket'">    
+                   <ul class="product-list">
+                       <li class="block-product" ng-repeat="(key, fridge) in basket" ng-if="fridge > 0;">
+                           <img ng-src="{{ fridges[key].image }}" alt=" {{ fridges[key].image }} ">
+                           <h3 class="product-name"> {{ fridges[key].name }} </h3>
+                           <spam class="cost"> {{ fridges[key].cost + fridges[key].currency }} </spam>
+                           <div class="wrap-buttons">
+                               <button class="ctrl-basket-buttons" ng-init="id = key;" ng-click="removeItem(id);">-</button>
+                               <span>x{{fridge}}</span>
+                               <button class="ctrl-basket-buttons" ng-init="id = key;" ng-click="addItem(id);">+</button>
+                           </div>
+                           <spam class="cost x-cost">{{(fridges[key].cost * basket[key]) + fridges[key].currency}}</span>
+                       </li>
+                   </ul>
+               <div class="total-amount">Общая сумма <span>{{ sumProducts }}$</span></div>
+               <button class="ctrl-basket-buttons clear-button" ng-click="clearBasket();">Очистить корзину</button>
+               <button class="ctrl-basket-buttons order-button">Сделать заказ</button>
+               </div>
+               <div ng-if="countProducts < 1 && openPage == 'basket'">
+                   <div class="basket-is-empty">Ваша корзина пуста</div> <button class="ctrl-basket-buttons" ng-click="placeStore();">Вернуться в магазин</button>
+               </div>
+            </section>
             <footer>footer</footer>
         </div>
-        <script src="./base.js"></script>
-        <script src="./common.js"></script>
     </body>
 </html>

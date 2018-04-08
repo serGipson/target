@@ -1,61 +1,127 @@
-window.onload = function() {
+'use strict';
+
+var storeApp = angular.module('storeApp', []);
+
+storeApp.controller('FridgeListCtrl', function($scope){
+    $scope.basket = [];
+    $scope.page = 1;
+    $scope.openPage = "store";
+    $scope.maxItems = 6;
+    $scope.itemsPage = [];
     
-    function Basket() {
-        this.items = {};
-    }
-    
-    Basket.prototype.add = function(id) {
-        if(this.items[id]) {
-            this.items[id]+=1;
-        } else {
-            this.items[id] = 1;
+    $scope.fridges = [
+        {
+            "name": "fridge 1",
+            "cost": 100,
+            "image": "./img/fridge_1.jpg",
+            "currency": "$"
+        },
+        {
+            "name": "fridge 2",
+            "cost": 99,
+            "image": "./img/fridge_2.png",
+            "currency": "$"
+        },
+        {
+            "name": "fridge 3",
+            "cost": 50,
+            "image": "./img/fridge_3.gif",
+            "currency": "$"
+        },
+        {
+            "name": "fridge 4",
+            "cost": 120,
+            "image": "./img/fridge_4.jpg",
+            "currency": "$"
+        },
+        {
+            "name": "fridge 5",
+            "cost": 110,
+            "image": "./img/fridge_5.jpg",
+            "currency": "$"
+        },
+        {
+            "name": "fridge 6",
+            "cost": 90,
+            "image": "./img/fridge_6.png",
+            "currency": "$"
+        },
+        {
+            "name": "fridge 7",
+            "cost": 89,
+            "image": "./img/fridge_1.jpg",
+            "currency": "$"
+        },
+        {
+            "name": "fridge 8",
+            "cost": 150,
+            "image": "./img/fridge_2.png",
+            "currency": "$"
+        },
+        {
+            "name": "fridge 9",
+            "cost": 100,
+            "image": "./img/fridge_3.gif",
+            "currency": "$"
+        },
+        {
+            "name": "fridge 10",
+            "cost": 89,
+            "image": "./img/fridge_4.jpg",
+            "currency": "$"
+        },
+        {
+            "name": "fridge 11",
+            "cost": 100,
+            "image": "./img/fridge_5.jpg",
+            "currency": "$"
         }
+    ];
+    
+    $scope.addItem = function(id) {
+        if($scope.basket[id]) {
+            $scope.basket[id]+=1;
+        } else {
+            $scope.basket[id] = 1;
+        }
+        $scope.update();
     };
     
-    Basket.prototype.removeItem = function(id) {
-        if(this.items[id]) {
-           if(this.items[id] > 0) {
-               this.items[id]-=1;
+    $scope.removeItem = function(id) {
+        if($scope.basket[id]) {
+           if($scope.basket[id] > 0) {
+               $scope.basket[id]-=1;
            }
         }
+        $scope.update();
     };
     
-    Basket.prototype.clear = function() {
-        for(var key in this.items) {
-            delete this.items;
-            this.items = {};
+    $scope.clearBasket = function() {
+        for(var key in $scope.basket) {
+            delete $scope.basket;
+            $scope.basket = {};
         }
+        $scope.update();
     };
     
-    Basket.prototype.getCount = function() {
+    $scope.getCount = function() {
         var sum = 0;
-        for(var key in this.items) {
-            sum+= Number(this.items[key]);
+        for(var key in $scope.basket) {
+            sum+= Number($scope.basket[key]);
         }
         return sum;
     };
     
-    function Store() {
-        this.content = document.getElementById("content");
-        this.fridges = this.getBase();
-        this.basket = new Basket();
-        this.itemsOnPage = 6;
-        this.getLocalStorage();
-        this.numPage = 0;
-        
-        window.addEventListener("beforeunload", this.saveLocalStorage.bind(this));
-    }
-    
-    Store.prototype.saveLocalStorage = function() {
-        localStorage.setItem('basket', JSON.stringify(this.basket.items));
+    $scope.saveLocalStorage = function() {
+        localStorage.setItem('basket', JSON.stringify($scope.basket));
     };
     
-    Store.prototype.getLocalStorage = function() {
+    $scope.getLocalStorage = function() {
         if(localStorage) {
             try {
                 var res = JSON.parse(localStorage.getItem('basket'));
                 if(res) {
-                    this.basket.items = res;
+                    $scope.basket = res;
                 }
             } catch(e) {
                 
@@ -64,120 +130,50 @@ window.onload = function() {
         return false;
     };
     
-    Store.prototype.update = function(id) {
-        var count = this.basket.getCount(),
-            tag = this.getTagBasketCount();
-        if(count > 0) {
-            tag.innerHTML = count;
-            tag.style.display = "block";
-        } else {
-            tag.style.display = "none";
-        }
-        
-        if(this.openPage == "basket") {
-            try {
-                this.placeBasketHtml();
-            } catch(e) {
-                
-            }
+    $scope.update = function() {
+        $scope.countProducts = $scope.getCount();
+        $scope.sumProducts = $scope.getSumm();
+        if($scope.openPage == "store") {
+            $scope.updatePage();
         }
     };
     
-    Store.prototype.getTagBasketCount = function() {
-        if(!this.tagBasketCount) {
-            this.tagBasketIcon = document.getElementById("basket-count");
+    $scope.updatePage = function() {
+        $scope.itemsPage = [];
+        for(var i = $scope.maxItems * ($scope.page - 1), l = i + $scope.maxItems, k = $scope.fridges.length; i < l && i < k; i+=1) {
+            $scope.itemsPage.push($scope.fridges[i]);
         }
-        return this.tagBasketIcon;
     };
     
-    Store.prototype.placeStore = function(page) {
-        var str = "",
-            p = (page || 1) - 1;
-        this.numPage = p;
-        for(var i = this.itemsOnPage * p, arr = this.fridges, l = arr.length, k = this.itemsOnPage * (p + 1); i < k & i < l; i+=1) {
-            var elem = arr[i];
-            str+='<div class="block-product">' + '<img src="' + elem.image + '" alt="' + elem.image + '"><h3 class="product-name">' + elem.name + '</h3><spam class="cost">' + elem.cost + elem.currency + '</spam><button class="ctrl-basket-buttons" onclick="store.addItem(' + i + ');">Добавить в корзину</button></div>';
+    $scope.placeStore = function(page) {
+        $scope.openPage = "store";
+        $scope.page = page || 1;
+        $scope.update();
+    };
+    
+    $scope.placeBasket = function() {
+        $scope.openPage = 'basket';
+        $scope.update();
+    };
+    
+    $scope.getArrPages = function() {
+        var res = [];
+        for(var i = 0, l = Math.ceil($scope.fridges.length / $scope.maxItems); i < l; i+=1) {
+            res.push(i);
         }
-        str+=this.getButtons();
-        this.content.innerHTML = str;
-        this.openPage = "store";
-        this.update();
+        return res;
     };
     
-    Store.prototype.getButtons = function() {
-        var str = '';
-        if(this.fridges.length > this.itemsOnPage) {
-            str+='<div class="wrap-page-buttons">'
-            for(var i = 1, l = Math.ceil(this.fridges.length / this.itemsOnPage) + 1; i < l; i+=1) {
-                str+='<a href="#" ' + ((i - 1 == this.numPage) ? "class=select" : "")  + ' onclick="store.placeStore(' + i +')">' + i + '</a>';
-            }
-            str+='</div>';
-        }
-        return str;
-    };
-    
-    Store.prototype.getBasketPanel = function() {
-        var str = '<div class="total-amount">Общая сумма <span>' + this.getSumm() + '$</span></div><button class="ctrl-basket-buttons clear-button" onclick="store.clearBasket();">Очистить корзину</button><button class="ctrl-basket-buttons order-button">Сделать заказ</button>';
-        return str;
-    };
-    
-    Store.prototype.placeBasket = function() {
-        this.placeBasketHtml();
-        this.update();
-    };
-    
-     Store.prototype.placeBasketHtml = function() {
-        var str = "",
-            check = 0;
-        for(var key in this.basket.items) {
-            var count = this.basket.items[key];
-            if(count > 0) {
-                var elem = this.fridges[key];
-                str+='<div class="block-product">' + '<img src="' + elem.image + '" alt="' + elem.image + '"><h3 class="product-name">' + elem.name + '</h3><spam class="cost">' + elem.cost + elem.currency + '</spam><div class="wrap-buttons"><button class="ctrl-basket-buttons" onclick="store.removeItem(' + key + ');">-</button><span id="count-product-' + key + '">x' + count + '</span><button class="ctrl-basket-buttons" onclick="store.addItem(' + key + ');">+</button></div><spam class="cost x-cost">' + (elem.cost * count) + elem.currency + '</spam></div>';
-                check+=1;
-            }
-        }
-         if(!(check > 0)) {
-             str = '<div class="basket-is-empty">Ваша корзина пуста</div> <button class="ctrl-basket-buttons" onclick="store.placeStore();">Вернуться в магазин</button>';
-         } else {
-             str+= this.getBasketPanel();
-         }
-        this.content.innerHTML = str;
-         this.openPage = "basket";
-    };
-    
-    Store.prototype.getBase = function() {
-        return dataBase.fridges;
-    };
-    
-    Store.prototype.clearContent = function() {
-        content.innerHTML = "";
-    };
-    
-    Store.prototype.addItem = function(id) {
-        this.basket.add(id);
-        this.update();
-    };
-    
-    Store.prototype.removeItem = function(id) {
-        this.basket.removeItem(id);
-        this.update();
-    };
-    
-    Store.prototype.clearBasket = function() {
-        this.basket.clear();
-        this.update();
-    };
-    
-    Store.prototype.getSumm = function() {
+    $scope.getSumm = function() {
         var sum = 0;
-        for(var key in this.basket.items) {
-            sum+= Number(this.fridges[key].cost) * Number(this.basket.items[key]);
+        for(var key in $scope.basket) {
+            sum+= Number($scope.fridges[key].cost) * Number($scope.basket[key]);
         }
         return sum;
     };
     
-    window.store = new Store();
+    $scope.getLocalStorage();
+    window.addEventListener("beforeunload", $scope.saveLocalStorage.bind($scope));
+    $scope.update();
     
-    store.placeStore();
-};
+});
