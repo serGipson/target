@@ -53,7 +53,7 @@ body {
     color: #fff;
     text-align: center;
     bottom: -3px;
-    display: block;
+    display: none;
 }
 
 #logo {
@@ -79,8 +79,8 @@ h1 {
 }
 
 .block-product {
-    margin: 10px;
     display: inline-block;
+    margin: 10px;
     width: 400px;
     text-align: center;
 }
